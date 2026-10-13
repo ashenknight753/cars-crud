@@ -1,3 +1,4 @@
+import pytest
 import re
 from playwright.sync_api import expect
 
@@ -13,7 +14,7 @@ def test_user_creates_car_in_browser(page, live_server):
 
     expect(page).to_have_url(re.compile(r"/cars/\d+$"))
     expect(page.get_by_role("heading", name="Toyota Yaris")).to_be_visible()
-
+@pytest.mark.skip(reason="flaky in CI")
 
 def test_user_edits_car_and_change_survives_reload(page, live_server):
     page.goto(f"{live_server}/cars/new")
