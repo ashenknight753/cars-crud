@@ -14,7 +14,10 @@ from app.main import create_app
 
 
 def pytest_addoption(parser):
-    parser.addoption("--headed", action="store_true", help="Show the E2E browser window")
+    try:
+        parser.addoption("--headed", action="store_true", help="Show the E2E browser window")
+    except ValueError:
+        pass
 
 
 @pytest.fixture
