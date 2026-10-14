@@ -14,15 +14,12 @@ from app.main import create_app
 
 
 def pytest_addoption(parser):
-    try:
-        parser.addoption("--headed", action="store_true", help="Show the E2E browser window")
-    except ValueError:
-        pass
+    # No custom options; use PLAYWRIGHT_HEADED env var instead.
+    pass
 
 
 @pytest.fixture
 def live_server(tmp_path: Path) -> Iterator[str]:
-    # Reserve a free port instead of hard-coding 8000 or racing another process.
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.bind(("127.0.0.1", 0))
         host, port = sock.getsockname()
@@ -52,11 +49,12 @@ def live_server(tmp_path: Path) -> Iterator[str]:
 
 @pytest.fixture(scope="session")
 def browser(pytestconfig):
-    # Import lazily so non-E2E tests do not need a browser installation.
     from playwright.sync_api import sync_playwright
 
+    headed = os.environ.get("PLAYWRIGHT_HEADED") == "1"
+
     with sync_playwright() as playwright:
-        options = {"headless": not pytestconfig.getoption("--headed")}
+        options = {"headless": not headed}
         executable = os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH")
         if executable:
             options["executable_path"] = executable
@@ -69,7 +67,6 @@ def browser(pytestconfig):
 
 @pytest.fixture
 def page(browser):
-    # No cookies, local storage, or browser state is shared between tests.
     context = browser.new_context()
     page = context.new_page()
     try:
